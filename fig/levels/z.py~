@@ -1,5 +1,0 @@
-plt.tight_layout(rect=[0, 0, 1, 0.95])
-plt.savefig('model_level_heights_3x2.png', dpi=450, bbox_inches='tight')
-plt.show()
-
-print("Plot saved as model_level_heights_3x2.png")

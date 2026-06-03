@@ -84,18 +84,21 @@ noise_levels = np.arange(999.0, 1001.01, 0.2)
 fig, axes = plt.subplots(2, 2, figsize=(16, 10))
 
 panels = [
-    (axes[0, 0], "Biharmonic wv damping after CSLAM→GLL interp (ne30pg3)", lat,    lon,    ps_new),
-    (axes[0, 1], "No damping after CSLAM→GLL interp (ne30pg3)",             lat,    lon,    ps_old),
-    (axes[1, 0], "no-CSLAM (ne30np4)",                                      lat_ne, lon_ne, ps_ne),
-    (axes[1, 1], "MPAS",                                                     lat_mp, lon_mp, ps_mp),
+    (axes[0, 0], "Biharmonic wv damping after CSLAM→GLL interp (ne30pg3)", "(a)", lat,    lon,    ps_new),
+    (axes[0, 1], "No damping after CSLAM→GLL interp (ne30pg3)",             "(b)", lat,    lon,    ps_old),
+    (axes[1, 0], "no-CSLAM (ne30np4)",                                      "(c)", lat_ne, lon_ne, ps_ne),
+    (axes[1, 1], "MPAS",                                                     "(d)", lat_mp, lon_mp, ps_mp),
 ]
 
 pm_ref = None
-for ax, title, la, lo, ps in panels:
-    pm = ax.pcolormesh(lo, la, ps, norm=norm, cmap=ncview_cmap, shading="auto")
+for ax, title, label, la, lo, ps in panels:
+    pm = ax.pcolormesh(lo, la, ps, norm=norm, cmap=ncview_cmap, shading="auto", rasterized=True)
     if pm_ref is None:
         pm_ref = pm
     ax.contour(lo, la, ps, levels=noise_levels, colors="k", linewidths=0.7)
+    ax.text(0.02, 0.97, label, transform=ax.transAxes,
+            fontsize=13, fontweight="bold", va="top", ha="left",
+            bbox=dict(facecolor="white", edgecolor="black", boxstyle="square,pad=0.3"))
     ax.set_title(title, fontsize=14, pad=6)
     ax.set_xlabel("Longitude", labelpad=3)
     ax.set_ylabel("Latitude", labelpad=3)

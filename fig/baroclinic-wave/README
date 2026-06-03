@@ -1,0 +1,3 @@
+module load conda
+conda activate npl-2025a
+python plot_PS_contour.py 10 --save
