@@ -1,0 +1,76 @@
+# -*- coding: utf-8 -*-
+import numpy as np
+import matplotlib.pyplot as plt
+
+def load_pint(filename):
+    pressures = []
+    with open(filename, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith('#') or not line:
+                continue
+            parts = line.split()
+            if len(parts) >= 2 and parts[0].isdigit():
+                pressures.append(float(parts[1]))
+    return np.array(pressures)
+
+# Load files
+p_cam6    = load_pint('pint.CAM6.txt')
+p_cam7lt  = load_pint('pint.CAM7-LT.txt')
+p_cam7mt  = load_pint('pint.CAM7-MT.txt')
+p_waccm6  = load_pint('pint.WACCM6.txt')
+
+def compute_dz_height(p_surface_to_top):
+    """p from surface (high) to top (low)"""
+    p = p_surface_to_top[::-1]          # reverse to top-to-bottom
+    
+    R = 287.058
+    g = 9.80665
+    T_mean = 255.0
+    
+    z = np.zeros(len(p))                # height in km from top
+    for i in range(1, len(p)):
+        z[i] = z[i-1] + (R * T_mean / g) * np.log(p[i-1] / p[i]) / 1000.0
+    
+    dz_m = np.diff(z) * 1000.0          # dz in meters
+    z_mid_km = (z[:-1] + z[1:]) / 2
+    
+    return z_mid_km, dz_m
+
+# Compute
+z_cam6,    dz_cam6    = compute_dz_height(p_cam6)
+z_cam7lt,  dz_cam7lt  = compute_dz_height(p_cam7lt)
+z_cam7mt,  dz_cam7mt  = compute_dz_height(p_cam7mt)
+z_waccm6,  dz_waccm6  = compute_dz_height(p_waccm6)
+
+# ====================== PLOT (Simpson style with round circles) ======================
+plt.figure(figsize=(10, 9))
+
+plt.plot(dz_cam6,    z_cam6,    label='CAM6 (33L)',     
+         lw=1.8, color='#e41a1c', marker='o', markersize=6, markerfacecolor='none', markeredgewidth=1.5)
+
+plt.plot(dz_cam7lt,  z_cam7lt,  label='CAM7-LT (~59L)', 
+         lw=1.8, color='#377eb8', marker='o', markersize=6, markerfacecolor='none', markeredgewidth=1.5)
+
+#plt.plot(dz_cam7mt,  z_cam7mt,  label='CAM7-MT (94L)',  
+#         lw=1.8, color='#4daf4a', marker='o', markersize=6, markerfacecolor='none', markeredgewidth=1.5)
+
+#plt.plot(dz_waccm6,  z_waccm6,  label='WACCM6 (71L)',   
+#         lw=1.8, color='#984ea3', marker='o', markersize=6, markerfacecolor='none', markeredgewidth=1.5)
+
+plt.xlabel('Grid spacing dz (m)', fontsize=13)
+plt.ylabel('Height (km)', fontsize=13)
+plt.title('Layer Thickness (dz) versus Height\n(Simpson et al. 2025 style)', fontsize=14)
+
+plt.grid(True, alpha=0.35)
+plt.legend(fontsize=11, loc='upper right')
+
+plt.xlim(0, 7000)
+plt.ylim(0, 145)
+
+plt.tight_layout()
+plt.savefig('dz_vs_height_simpson_circles.png', dpi=350, bbox_inches='tight')
+plt.show()
+
+print("Plot saved as dz_vs_height_simpson_circles.png")
+print(f"Max height reached: CAM7-MT # {z_cam7mt.max():.1f} km, WACCM6 # {z_waccm6.max():.1f} km")
